@@ -33,34 +33,43 @@ const renderIcons = (iconsData) => iconsData.map(({
     </svg>
 </a>);
 
-const renderFilters = ({ categories, filters }, selectedSources, t) => Object.values(categories)
-    .map(({ name, filterIds }) => <div key={name} className="modal-body__item">
-        <h6 className="form__label form__label--with-desc form__label--bold pb-2">{t('name')}</h6>
-        {filterIds.map((filterId) => {
-            const filter = filters[filterId];
-
-            if (!filter) {
-                return null;
+const renderFilters = ({ categories, filters }, selectedSources, t) => Object.keys(categories)
+    .map((categoryId) => {
+        const category = categories[categoryId];
+        const categoryFilters = [];
+        Object.keys(filters).sort().forEach((key) => {
+            const filter = filters[key];
+            filter.id = key;
+            if (filter.categoryId === categoryId) {
+                categoryFilters.push(filter);
             }
+        });
 
-            const { homepage, source, name } = filter;
+        // TODO: add description
+        // TODO: add name and description localization
 
-            const isSelected = Object.prototype.hasOwnProperty.call(selectedSources, source);
+        return (<div key={category.name} className="modal-body__item">
+            <h6 className="form__label form__label--with-desc form__label--bold pb-2">{category.name}</h6>
+            {categoryFilters.map((filter) => {
+                const { homepage, source, name } = filter;
 
-            const iconsData = getIconsData(homepage, source);
+                const isSelected = Object.prototype.hasOwnProperty.call(selectedSources, source);
 
-            return <div key={name} className="d-flex align-items-center">
-                <Field
-                    name={`filter${filterId}`}
-                    type="checkbox"
-                    component={renderSelectField}
-                    placeholder={t(name)}
-                    disabled={isSelected}
-                />
-                {renderIcons(iconsData)}
-            </div>;
-        })}
-    </div>);
+                const iconsData = getIconsData(homepage, source);
+
+                return <div key={name} className="d-flex align-items-center">
+                    <Field
+                        name={`${filter.id}`}
+                        type="checkbox"
+                        component={renderSelectField}
+                        placeholder={t(name)}
+                        disabled={isSelected}
+                    />
+                    {renderIcons(iconsData)}
+                </div>;
+            })}
+        </div>);
+    });
 
 const Form = (props) => {
     const {

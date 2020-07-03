@@ -15,7 +15,7 @@ import {
     getObjDiff,
 } from '../../helpers/helpers';
 
-const filtersCatalog = require('../../../../filters.json');
+const filtersCatalog = require('../../helpers/filters/filters.json');
 
 class DnsBlocklist extends Component {
     componentDidMount() {
@@ -40,8 +40,8 @@ class DnsBlocklist extends Component {
 
                 Object.keys(changedValues)
                     .forEach((fieldName) => {
-                        const filterId = fieldName.replace('filter', '');
-                        const { source, name } = filtersCatalog.filters[filterId];
+                        // filterId is actually in the field name
+                        const { source, name } = filtersCatalog.filters[fieldName];
                         this.props.addFilter(source, name);
                     });
                 break;
