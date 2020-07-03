@@ -33,4 +33,5 @@ func TestAuthGL(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://localhost/", nil)
 	r.AddCookie(&http.Cookie{Name: glCookieName, Value: "test"})
 	assert.True(t, glProcessCookie(r))
+	GLMode = false
 }
