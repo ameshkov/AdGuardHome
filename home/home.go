@@ -263,7 +263,8 @@ func run(args options) {
 	}
 
 	sessFilename := filepath.Join(Context.getDataDir(), "sessions.db")
-	Context.auth = InitAuth(sessFilename, config.Users, config.WebSessionTTLHours*60*60, args.glinetMode)
+	GLMode = args.glinetMode
+	Context.auth = InitAuth(sessFilename, config.Users, config.WebSessionTTLHours*60*60)
 	if Context.auth == nil {
 		log.Fatalf("Couldn't initialize Auth module")
 	}

@@ -3,6 +3,7 @@ package home
 import (
 	"encoding/binary"
 	"io/ioutil"
+	"net/http"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 )
 
 func TestAuthGL(t *testing.T) {
+	GLMode = true
 	tval := uint32(1)
 	data := make([]byte, 4)
 	if archIsLittleEndian() {
@@ -28,5 +30,7 @@ func TestAuthGL(t *testing.T) {
 		binary.BigEndian.PutUint32(data, tval)
 	}
 	assert.Nil(t, ioutil.WriteFile("/tmp/gl_token_"+"test", data, 0644))
-	assert.True(t, glCheckToken("test"))
+	r, _ := http.NewRequest("GET", "http://localhost/", nil)
+	r.AddCookie(&http.Cookie{Name: glCookieName, Value: "test"})
+	assert.True(t, glProcessCookie(r))
 }

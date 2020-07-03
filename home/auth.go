@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -62,7 +61,6 @@ type Auth struct {
 	lock       sync.Mutex
 	users      []User
 	sessionTTL uint32 // in seconds
-	glMode     bool
 }
 
 // User object
@@ -72,7 +70,7 @@ type User struct {
 }
 
 // InitAuth - create a global object
-func InitAuth(dbFilename string, users []User, sessionTTL uint32, glMode bool) *Auth {
+func InitAuth(dbFilename string, users []User, sessionTTL uint32) *Auth {
 	log.Info("Initializing auth module: %s", dbFilename)
 
 	a := Auth{}
@@ -87,7 +85,6 @@ func InitAuth(dbFilename string, users []User, sessionTTL uint32, glMode bool) *
 	}
 	a.loadSessions()
 	a.users = users
-	a.glMode = glMode
 	log.Info("Auth: initialized.  users:%d  sessions:%d", len(a.users), len(a.sessions))
 	return &a
 }
@@ -392,15 +389,9 @@ func optionalAuth(handler func(http.ResponseWriter, *http.Request)) func(http.Re
 			// redirect to login page if not authenticated
 			ok := false
 			cookie, err := r.Cookie(sessionCookieName)
-			glCookie, glerr := r.Cookie(glCookieName)
 
-			if Context.auth.glMode && glerr == nil {
-				log.Debug("Auth: GL cookie value: %s", glCookie.Value)
-				if glCheckToken(glCookie.Value) {
-					ok = true
-				} else {
-					log.Info("Auth: invalid GL cookie value: %s", glCookie)
-				}
+			if glProcessCookie(r) {
+				//
 
 			} else if err == nil {
 				r := Context.auth.CheckSession(cookie.Value)
@@ -423,12 +414,9 @@ func optionalAuth(handler func(http.ResponseWriter, *http.Request)) func(http.Re
 			}
 			if !ok {
 				if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-					if Context.auth.glMode {
-						// redirect to gl-inet login
-						host, _, _ := net.SplitHostPort(r.Host)
-						url := "http://" + host
-						log.Debug("Auth: redirecting to %s", url)
-						http.Redirect(w, r, url, http.StatusFound)
+					if glProcessRedirect(w, r) {
+						//
+
 					} else {
 						w.Header().Set("Location", "/login.html")
 						w.WriteHeader(http.StatusFound)
@@ -529,7 +517,7 @@ func (a *Auth) GetUsers() []User {
 
 // AuthRequired - if authentication is required
 func (a *Auth) AuthRequired() bool {
-	if a.glMode {
+	if GLMode {
 		return true
 	}
 

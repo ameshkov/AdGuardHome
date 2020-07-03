@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io/ioutil"
+	"net"
+	"net/http"
 	"os"
 	"time"
 	"unsafe"
@@ -11,8 +13,41 @@ import (
 	"github.com/AdguardTeam/golibs/log"
 )
 
+// GLMode - enable GL-Inet compatibility mode
+var GLMode bool
+
 const glTokenTimeoutSeconds = 3600
 const glCookieName = "Admin-Token"
+
+func glProcessRedirect(w http.ResponseWriter, r *http.Request) bool {
+	if !GLMode {
+		return false
+	}
+	// redirect to gl-inet login
+	host, _, _ := net.SplitHostPort(r.Host)
+	url := "http://" + host
+	log.Debug("Auth: redirecting to %s", url)
+	http.Redirect(w, r, url, http.StatusFound)
+	return true
+}
+
+func glProcessCookie(r *http.Request) bool {
+	if !GLMode {
+		return false
+	}
+
+	glCookie, glerr := r.Cookie(glCookieName)
+	if glerr != nil {
+		return false
+	}
+
+	log.Debug("Auth: GL cookie value: %s", glCookie.Value)
+	if glCheckToken(glCookie.Value) {
+		return true
+	}
+	log.Info("Auth: invalid GL cookie value: %s", glCookie)
+	return false
+}
 
 func glCheckToken(sess string) bool {
 	tokenName := "/tmp/gl_token_" + sess
