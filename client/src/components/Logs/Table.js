@@ -330,7 +330,7 @@ const Table = (props) => {
                             source_label: source,
                             validated_with_dnssec: dnssec_enabled ? Boolean(answer_dnssec) : false,
                             [buttonType]: <div onClick={onToggleBlock}
-                                               className="title--border bg--danger">{t(buttonType)}</div>,
+                                               className="title--border bg--danger text-center">{t(buttonType)}</div>,
                         };
 
                         const detailedDataBlocked = {
@@ -350,7 +350,7 @@ const Table = (props) => {
                             elapsed: formattedElapsedMs,
                             response_table_header: response && response.join('\n'),
                             [buttonType]: <div onClick={onToggleBlock}
-                                               className="title--border">{t(buttonType)}</div>,
+                                               className="title--border text-center">{t(buttonType)}</div>,
                         };
 
                         const detailedDataCurrent = isFiltered ? detailedDataBlocked : detailedData;
