@@ -16,6 +16,8 @@ import (
 // GLMode - enable GL-Inet compatibility mode
 var GLMode bool
 
+var glFilePrefix = "/tmp/gl_token_"
+
 const glTokenTimeoutSeconds = 3600
 const glCookieName = "Admin-Token"
 
@@ -50,7 +52,7 @@ func glProcessCookie(r *http.Request) bool {
 }
 
 func glCheckToken(sess string) bool {
-	tokenName := "/tmp/gl_token_" + sess
+	tokenName := glFilePrefix + sess
 	_, err := os.Stat(tokenName)
 	if err != nil {
 		log.Error("os.Stat: %s", err)
